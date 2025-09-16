@@ -1,0 +1,198 @@
+{% extends 'research/base.html' %}
+{% load static %}
+
+{% block page_content %}
+<div class="container-fluid h-100 p-4">
+    <div class="row h-100">
+        <!-- Research Section -->
+        <div class="col-lg-6 h-100">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-search text-primary me-2"></i>
+                        Research
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <!-- Research Input -->
+                    <div class="mb-4">
+                        <div class="input-group">
+                            <textarea 
+                                class="form-control research-input" 
+                                id="researchInput"
+                                rows="3" 
+                                placeholder="Enter your research query here..."
+                                style="resize: none;"></textarea>
+                            <button class="btn btn-primary" onclick="submitResearchQuery()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Research Results -->
+                    <div class="flex-grow-1 overflow-auto">
+                        <div id="researchResults" class="research-workspace">
+                            {% for query in queries %}
+                                {% if query.query_type == 'research' %}
+                                <div class="result-item mb-4 p-3 border rounded bg-white">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <strong class="text-primary">Query:</strong>
+                                        <small class="text-muted">{{ query.created_at|date:"M d, H:i" }}</small>
+                                    </div>
+                                    <p class="mb-3">{{ query.query_text }}</p>
+                                    <div class="mb-2">
+                                        <strong class="text-success">Response:</strong>
+                                    </div>
+                                    <div class="response-text">{{ query.response_text|linebreaks }}</div>
+                                </div>
+                                {% endif %}
+                            {% empty %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-lightbulb fa-3x mb-3"></i>
+                                <h6>Start your research journey</h6>
+                                <p>Enter a query above to begin researching</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reports Section -->
+        <div class="col-lg-6 h-100">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar text-success me-2"></i>
+                        Reports
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <!-- Reports Input -->
+                    <div class="mb-4">
+                        <div class="input-group">
+                            <textarea 
+                                class="form-control reports-input" 
+                                id="reportsInput"
+                                rows="3" 
+                                placeholder="Describe the report you want to generate..."
+                                style="resize: none;"></textarea>
+                            <button class="btn btn-success" onclick="submitReportQuery()">
+                                <i class="fas fa-chart-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Reports Results -->
+                    <div class="flex-grow-1 overflow-auto">
+                        <div id="reportsResults" class="reports-workspace">
+                            {% for query in queries %}
+                                {% if query.query_type == 'report' %}
+                                <div class="result-item mb-4 p-3 border rounded bg-white">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <strong class="text-primary">Query:</strong>
+                                        <small class="text-muted">{{ query.created_at|date:"M d, H:i" }}</small>
+                                    </div>
+                                    <p class="mb-3">{{ query.query_text }}</p>
+                                    <div class="mb-2">
+                                        <strong class="text-success">Response:</strong>
+                                    </div>
+                                    <div class="response-text">{{ query.response_text|linebreaks }}</div>
+                                </div>
+                                {% endif %}
+                            {% empty %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                                <h6>Generate insightful reports</h6>
+                                <p>Describe what you want to analyze</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const currentSessionId = '{{ session.id }}';
+    
+    function submitResearchQuery() {
+        const input = document.getElementById('researchInput');
+        const query = input.value.trim();
+        
+        if (!query) {
+            alert('Please enter a research query');
+            return;
+        }
+        
+        submitQuery(query, 'research', 'researchResults');
+        input.value = '';
+    }
+    
+    function submitReportQuery() {
+        const input = document.getElementById('reportsInput');
+        const query = input.value.trim();
+        
+        if (!query) {
+            alert('Please enter a report description');
+            return;
+        }
+        
+        submitQuery(query, 'report', 'reportsResults');
+        input.value = '';
+    }
+    
+    function submitQuery(query, type, resultsContainerId) {
+        const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+        loadingModal.show();
+        
+        fetch('/api/query/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                session_id: currentSessionId,
+                query: query,
+                type: type
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingModal.hide();
+            displayResult(data, resultsContainerId);
+        })
+        .catch(error => {
+            loadingModal.hide();
+            console.error('Error submitting query:', error);
+            alert('Failed to submit query');
+        });
+    }
+    
+    function displayResult(data, containerId) {
+        const container = document.getElementById(containerId);
+        const resultHtml = `
+            <div class="result-item mb-4 p-3 border rounded bg-white">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong class="text-primary">Query:</strong>
+                    <small class="text-muted">${new Date(data.created_at).toLocaleString()}</small>
+                </div>
+                <p class="mb-3">${data.query}</p>
+                <div class="mb-2">
+                    <strong class="text-success">Response:</strong>
+                </div>
+                <div class="response-text">${data.response.replace(/\n/g, '<br>')}</div>
+            </div>
+        `;
+        
+        if (container.querySelector('.text-center')) {
+            container.innerHTML = resultHtml;
+        } else {
+            container.insertAdjacentHTML('afterbegin', resultHtml);
+        }
+    }
+</script>
+{% endblock %}

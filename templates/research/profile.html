@@ -1,0 +1,73 @@
+{% extends 'research/base.html' %}
+{% load static %}
+
+{% block page_content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user text-primary me-2"></i>
+                        User Profile
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">First Name</label>
+                            <input type="text" class="form-control" value="{{ user.first_name|default:'Not provided' }}" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-medium">Last Name</label>
+                            <input type="text" class="form-control" value="{{ user.last_name|default:'Not provided' }}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Username</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Email Address</label>
+                        <input type="email" class="form-control" value="{{ user.email }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Member Since</label>
+                        <input type="text" class="form-control" value="{{ user.date_joined|date:'F d, Y' }}" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Last Login</label>
+                        <input type="text" class="form-control" value="{{ user.last_login|date:'F d, Y H:i'|default:'Never' }}" readonly>
+                    </div>
+                    
+                    {% if profile.bio %}
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Bio</label>
+                        <textarea class="form-control" rows="3" readonly>{{ profile.bio }}</textarea>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'research:index' %}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Back to Research
+                        </a>
+                        <a href="{% url 'admin:logout' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt me-1"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
